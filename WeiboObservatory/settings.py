@@ -23,11 +23,13 @@ DATABASES = {
 WEIBO_APPKEY = '3104636584'
 WEIBO_APPSECRET = 'bab1fcfa24af5405df104db6f416331a'
 
+WEIBO_ADMINS = [1420854073, ]
+
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
 # although not all choices may be available on all operating systems.
 # In a Windows environment this must be set to your system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Europe/London'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
@@ -120,7 +122,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
+    'django.contrib.admin',
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
@@ -155,4 +157,6 @@ LOGGING = {
 }
 
 AUTH_PROFILE_MODULE = 'Observer.WeiboAccount'
+LOGIN_URL  = '/login'
+LOGOUT_URL = '/logout'
 ##AUTHENTICATION_BACKENDS = ('WeiboObservatory.authorize.backend', )

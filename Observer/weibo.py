@@ -268,7 +268,7 @@ class APIClient(object):
             rtime = int(remind_in) + current
             if rtime < expires:
                 expires = rtime
-        return JsonDict(access_token=r.access_token, expires=expires, expires_in=expires, uid=r.get('uid', None))
+        return JsonDict(access_token=r.access_token, expires=expires, expires_in=r.expires_in, uid=r.get('uid', None))
 
     def refresh_token(self, refresh_token):
         req_str = '%s%s' % (self.auth_url, 'access_token')

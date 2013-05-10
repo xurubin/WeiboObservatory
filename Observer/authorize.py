@@ -1,23 +1,42 @@
 from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
 from django.http import HttpResponse, HttpResponseRedirect
 from django.db import transaction
+from django.utils.timezone import now
 from models import WeiboAccount
 import weibo
-import datetime
+from datetime import timedelta
+
+def weibo_login_check(user):
+    if not user.is_authenticated():
+        user.client = None
+        return False
+    client = weibo.APIClient(app_key=settings.WEIBO_APPKEY, app_secret=settings.WEIBO_APPSECRET)
+    client.set_access_token(user.get_profile().access_token, 0)
+    user.client = client
+    return True
+    
+def weibo_loggedin(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
+    actual_decorator = user_passes_test(
+        weibo_login_check,
+        login_url=login_url,
+        redirect_field_name=redirect_field_name
+    )
+    if function:
+        return actual_decorator(function)
+    return actual_decorator
 
 
-@login_required
+@weibo_loggedin
 def user_logout(request):
     logout(request)
     return HttpResponseRedirect('/')
 
-@transaction.commit_on_success
 def user_login(request):
     if request.user.is_authenticated():
-        pass # Do nothing
+        return HttpResponseRedirect(request.GET.get('next', '/'))
     else:
         code = request.GET.get('code', None)
         client = weibo.APIClient(app_key=settings.WEIBO_APPKEY, app_secret=settings.WEIBO_APPSECRET, 
@@ -29,13 +48,18 @@ def user_login(request):
                 return HttpResponse(str(e))
             
             access_token = r.access_token 
-            expires = r.expires
+            expires_in = r.expires_in
             uid = r.uid
             try:
                 user = User.objects.get(username=uid)
             except User.DoesNotExist:
                 user = User.objects.create_user(uid)
-            
+                
+            if int(uid) in settings.WEIBO_ADMINS and (not user.is_superuser):
+                user.is_staff = True
+                user.is_superuser = True
+                user.save()
+                
             try:
                 profile = user.get_profile()
             except WeiboAccount.DoesNotExist:
@@ -43,7 +67,7 @@ def user_login(request):
                 profile.user = user
                 profile.weibo_id = int(uid)
             profile.access_token  = access_token
-            profile.expiry_time = datetime.datetime.fromtimestamp(expires)
+            profile.expiry_time = now() + timedelta(seconds = expires_in)
             profile.save()
             ## Login successfully, note the hack of 'backend' here
             user.backend = settings.AUTHENTICATION_BACKENDS[0]
