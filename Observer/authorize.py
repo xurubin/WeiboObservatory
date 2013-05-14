@@ -39,8 +39,11 @@ def user_login(request):
         return HttpResponseRedirect(request.GET.get('next', '/'))
     else:
         code = request.GET.get('code', None)
+        callback_uri = request.build_absolute_uri()
+        callback_uri = callback_uri.split('?')[0] # Remove GET parameters
+        callback_uri = "https:" + callback_uri.partition(':')[2] # Force HTTPS
         client = weibo.APIClient(app_key=settings.WEIBO_APPKEY, app_secret=settings.WEIBO_APPSECRET, 
-            redirect_uri=request.build_absolute_uri().split('?')[0])
+            redirect_uri=callback_uri)
         if code: # Third leg of OAuth, check against server
             try:
                 r = client.request_access_token(code)
