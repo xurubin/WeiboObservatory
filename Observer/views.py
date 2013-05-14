@@ -1,4 +1,5 @@
-from django.http import HttpResponse, HttpResponseBadRequest  
+from django.http import HttpResponse, HttpResponseBadRequest
+from django.shortcuts import render
 from authorize import weibo_loggedin
 from models import History
 from persistence import load_status
@@ -39,7 +40,10 @@ def syncdb(request):
 
 @weibo_loggedin
 def home(request):
-    return HttpResponse("Hello " + str(request.user.client.account.get_uid.get()))
+    return render(request, 'home.html', {
+                         'uid': str(request.user.client.account.get_uid.get()),
+                         
+    })
 
 @weibo_loggedin
 def history(request):
