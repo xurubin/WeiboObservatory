@@ -4,6 +4,39 @@ from models import History
 from persistence import load_status
 import json
 
+def call_command(name, *args, **options):
+    """
+    Shamelessly stolen from django.core.management.call_command
+    """
+    from django.core.management import load_command_class, NO_DEFAULT
+    klass = load_command_class("django.core", name)
+
+    defaults = {}
+    for opt in klass.option_list:
+        if opt.default is NO_DEFAULT:
+            defaults[opt.dest] = None
+        else:
+            defaults[opt.dest] = opt.default
+    defaults.update(options)
+
+    from StringIO import StringIO 
+    import sys
+    content = StringIO()
+    bak_out = sys.stdout
+    sys.stdout = content
+    klass.execute(*args, **defaults)
+    sys.stdout = bak_out
+    content.seek(0)
+    return content.read()
+    
+def syncdb(request):
+    ## BAE does not allow os.listdir(), which is required by django's call_command
+    ## so we have to do it ourselves. Also, disable load_initial_data as it will lead
+    ## to call_command() as well.
+    result = call_command('syncdb', load_initial_data=False, interactive=False)
+
+    return HttpResponse("syncdb\n" + result, mimetype='text/plain')
+
 @weibo_loggedin
 def home(request):
     return HttpResponse("Hello " + str(request.user.client.account.get_uid.get()))
