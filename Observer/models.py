@@ -6,7 +6,7 @@ import json
 class Status(models.Model):
     class Meta:
         verbose_name_plural = 'Statuses'
-    id = models.IntegerField(primary_key=True)
+    id = models.BigIntegerField(primary_key=True)
     content = models.TextField()
     
     def content_summary(self):
@@ -18,7 +18,7 @@ class Status(models.Model):
 
 class WeiboAccount(models.Model):
     user = models.OneToOneField(User)
-    weibo_id = models.IntegerField()
+    weibo_id = models.BigIntegerField()
     access_token = models.CharField(max_length=48)
     expiry_time = models.DateTimeField(auto_now_add=False, auto_now=False)
     latest_status = models.ForeignKey(Status, blank=True, null=True)
@@ -54,7 +54,7 @@ class History(models.Model):
         return str(self.user)
     
 class WeiboUser(models.Model):
-    id = models.IntegerField(primary_key=True)
+    id = models.BigIntegerField(primary_key=True)
     name = models.CharField(max_length=64)
     avatar = models.CharField(max_length=64)
     details = models.TextField()
