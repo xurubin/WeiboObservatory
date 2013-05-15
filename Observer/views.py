@@ -41,7 +41,7 @@ def syncdb(request):
 @weibo_loggedin
 def home(request):
     return render(request, 'home.html', {
-                         'uid': str(request.user.client.account.get_uid.get()),
+                         'uid': str(request.user.client.account.get_uid.get().uid),
                          
     })
 
