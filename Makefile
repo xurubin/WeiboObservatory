@@ -9,19 +9,21 @@ bae_checkout:
 	svn co `cat $(TARGET_DIR)/$(call GET_TARGET,$@)/SVN_URL` $(STAGING_DIR)
 
 bae_files:
+	@mkdir -p $(STAGING_DIR)/static
 	python manage.py collectstatic -c --noinput
 	@rsync -av \
 		--exclude='.git' \
+		--exclude='static' \
 		--exclude='$(TARGET_DIR)'  \
 		--exclude='$(STAGING_DIR)' \
 		--exclude='Makefile'  \
 		--exclude='sqlite.db' \
-		--exclude='SVN_URL' \
 		--exclude='*.pyc' \
 		--exclude='*.example.py' \
 		./* $(STAGING_DIR)/
 	cp -r $(TARGET_DIR)/$(call GET_TARGET,$@)/* $(STAGING_DIR)/
 	rm $(STAGING_DIR)/manage.py
+	rm $(STAGING_DIR)/SVN_URL
 bae_commit:
 	cd $(STAGING_DIR) && svn add --force .
 	cd $(STAGING_DIR) && svn commit -m "Automatic deployment."
