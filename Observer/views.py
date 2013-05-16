@@ -40,9 +40,10 @@ def syncdb(request):
 
 @weibo_loggedin
 def home(request):
+    statuses = [h.status.content_text() for h in request.user.get_profile().history_set.order_by('-id')[:10] ]
     return render(request, 'home.html', {
                          'uid': str(request.user.client.account.get_uid.get().uid),
-                         
+                         'statuses' : statuses,
     })
 
 @weibo_loggedin

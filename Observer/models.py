@@ -9,8 +9,11 @@ class Status(models.Model):
     id = models.BigIntegerField(primary_key=True)
     content = models.TextField()
     
+    def content_text(self):
+        return json.loads(self.content).get('text', '(Empty)')
+    
     def content_summary(self):
-        return json.loads(self.content).get('text', '(Empty)')[:32]
+        return self.content_text()[:32]
     content_summary.short_description= 'Content'
 
     def __unicode__(self): # displayed in other's ForeignKey field.

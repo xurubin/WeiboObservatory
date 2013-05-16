@@ -12,6 +12,7 @@ urlpatterns = patterns('',
     url(r'^retrieve$', 'Observer.views.retrieve'),
     url(r'^' + settings.LOGIN_URL[1:] + '$', 'Observer.authorize.user_login'),
     url(r'^' + settings.LOGOUT_URL[1:] + '$', 'Observer.authorize.user_logout'),
+    url(r'^renew$', 'Observer.authorize.user_renew'),
     url(r'^crawl$', 'Observer.backend.crawl'),
     # Examples:
     # url(r'^$', 'WeiboObservatory.views.home', name='home'),

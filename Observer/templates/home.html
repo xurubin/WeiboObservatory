@@ -12,12 +12,13 @@
       <div class="navbar-inner">
         <div class="container">
 
-          <a class="brand" href="#">Hello {{ uid }}</a>
+          <a class="brand" href="/">Hello {{ uid }}</a>
           <ul class="nav">
           	{% if user.is_superuser %}
             <li><a href="/admin">Admin</a></li>
             {% endif %}
             <li><a href="/crawl" target="blank">Crawl</a></li>
+            <li><a href="/renew">Renew Token</a></li>
             <li><a href="/logout">Logout</a></li>
           </ul>
         </div>
@@ -32,14 +33,20 @@
         <p>
          I have crawled {{user.get_profile.history_set.all|length}} statuses for you.	
 		</p>
+		<p>
+			Token expires on {{user.get_profile.expiry_time}}
+		</p>
+		<p>
+			Last crawled at {{user.get_profile.last_crawled}}
+		</p>
       </div>
 
       <!-- Example row of columns -->
       <div class="row">
         <div class="span6 offset3">
 			<table class="table table-striped">
-				{% for history in user.get_profile.history_set.all %}
-			 	<tr><td>{{ history.status.content_summary }}</td></tr>
+				{% for status in statuses  %}
+			 	<tr><td>{{ status }}</td></tr>
 			 	{% endfor %}
 			</table>
         </div>
@@ -47,9 +54,6 @@
 
       <hr>
 
-	   <div class="row">
-	   	{% debug %}
-	   </div>
       <footer>
         <p>&copy; rx201</p>
       </footer>
