@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.contrib import admin
 import json
+from django.core import urlresolvers
 
 class Status(models.Model):
     class Meta:
@@ -41,18 +42,27 @@ class History(models.Model):
         return self.user.weibo_id
     WeiboId.short_description = 'User ID'
     def StatusId(self):
-        return self.status.id
+        sid = self.status.id
+        url = urlresolvers.reverse('admin:Observer_status_change', args=(sid,))
+        return '<a href="%s">%d</a>' % (url, sid)
     StatusId.short_description = 'Status ID'
+    StatusId.allow_tags = True
+    
     def StatusContent(self):
         return self.status.content_summary()
     StatusContent.short_description = 'Status Content'
+    
     def RetweetId(self):
         if self.rewteeted_status:
-            return str(self.rewteeted_status.id)
+            text = str(self.rewteeted_status.id)
+            url = urlresolvers.reverse('admin:Observer_status_change', args=(self.rewteeted_status.id,))
         else:
-            return '(None)'
+            text = '(None)'
+            url = '#'
+        return '<a href="%s">%s</a>' % (url, text)
     RetweetId.short_description = 'Retweeted Status'
-
+    RetweetId.allow_tags = True
+    
     def __unicode__(self): # displayed in other's ForeignKey field.
         return str(self.user)
     
