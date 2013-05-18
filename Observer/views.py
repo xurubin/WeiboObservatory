@@ -40,10 +40,34 @@ def syncdb(request):
 
 @weibo_loggedin
 def home(request):
-    statuses = [h.status.content_text() for h in request.user.get_profile().history_set.order_by('-id')[:10] ]
+    profile = request.user.get_profile()
+    history = profile.history_set
+    PAGE_ITEMS = 5 
+    
+    latest = int(request.GET.get('latest', 0))
+    page = int(request.GET.get('page', 1))
+    if latest:
+        new_count = history.filter(status_id__gt=latest).count()
+    else:
+        latest = history.order_by('-status__id')[0].status.id
+        new_count = 0
+    
+    known_statuses = history.filter(status_id__lte=latest).order_by('-status__id')
+    page_count = (known_statuses.count() + PAGE_ITEMS - 1) / PAGE_ITEMS
+    
+    links = [('/', 
+              'Latest' + (' (%d)' % new_count if new_count else ''))]
+    
+    for i in xrange(1, page_count):
+        links.append(('/?latest=%d&page=%d' % (latest, i+1),
+                      str(i+1)))
+    
+    statuses = [h.status.content_text() for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]]
     return render(request, 'home.html', {
                          'uid': str(request.user.client.account.get_uid.get().uid),
                          'statuses' : statuses,
+                         'links' : links,
+                         'page' : page,
     })
 
 @weibo_loggedin

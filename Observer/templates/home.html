@@ -41,6 +41,18 @@
 		</p>
       </div>
 
+      <div class="row">
+      	{% for href, text in links %}
+      		{% if forloop.counter == page %}
+      			<b>
+      		{% endif %}
+      		<a href="{{ href }}">{{ text }}</a>
+      		{% if forloop.counter == page %}
+      			</b>
+      		{% endif %}
+      	{% endfor %}
+      </div>
+
       <!-- Example row of columns -->
       <div class="row">
         <div class="span6 offset3">
@@ -51,7 +63,7 @@
 			</table>
         </div>
       </div>
-
+      
       <hr>
 
       <footer>
