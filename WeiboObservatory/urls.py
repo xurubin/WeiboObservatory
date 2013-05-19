@@ -8,22 +8,17 @@ admin.site.login = login_required(admin.site.login)
 
 urlpatterns = patterns('',
     url(r'^$', 'Observer.views.home'),
-    url(r'^history$', 'Observer.views.history'),
-    url(r'^retrieve$', 'Observer.views.retrieve'),
+    url(r'^syncdb$', 'Observer.views.syncdb'),
+    
+    url(r'^history$', 'Observer.endpoints.history'),
+    url(r'^retrieve$', 'Observer.endpoints.retrieve'),
+    
     url(r'^' + settings.LOGIN_URL[1:] + '$', 'Observer.authorize.user_login'),
     url(r'^' + settings.LOGOUT_URL[1:] + '$', 'Observer.authorize.user_logout'),
     url(r'^renew$', 'Observer.authorize.user_renew'),
+    
     url(r'^crawl$', 'Observer.backend.crawl'),
-    # Examples:
-    # url(r'^$', 'WeiboObservatory.views.home', name='home'),
-    # url(r'^WeiboObservatory/', include('WeiboObservatory.foo.urls')),
-
-    # Uncomment the admin/doc line below to enable admin documentation:
-    # url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-
-    # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
     url(r'^console/$', 'Observer.console.main'),
 
-    url(r'^syncdb$', 'Observer.views.syncdb'),
+    url(r'^admin/', include(admin.site.urls)),
 )

@@ -7,12 +7,14 @@
     <!-- Bootstrap -->
     <link href="{% static "css/bootstrap.min.css" %}" rel="stylesheet" media="screen">
   </head>
-  <body>
+  <body style="padding-top: 60px;">
    <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
-
-          <a class="brand" href="/">Hello {{ uid }}</a>
+          <a class="brand" href="/">
+          	<img src="{{avatar}}" width="24px" height="24px" /> 
+          	{{ nickname }}
+          </a>
           <ul class="nav">
           	{% if user.is_superuser %}
             <li><a href="/admin">Admin</a></li>
@@ -26,51 +28,63 @@
     </div>
       	
 
-    <div class="container">
+<div class="container">
+	<div class="row">
+		<div class="span3"> <!-- sidebar -->
+			<p>
+				Status crawled: <br/><b> {{user.get_profile.history_set.all|length}}</b>
+			</p>
+			<p>
+				Token expiration: <br/><b>{{user.get_profile.expiry_time}} </b>
+			</p>
+			<p>
+				Last Updated on: <br/><b>{{user.get_profile.last_crawled}} </b>
+			</p>
+			{% if user.is_superuser %}
+			<div style="padding-right:20px">
+				<hr>
+				<span class="pull-left">User quota: </span>
+				<div class="progress" title="{{quota.user_limit_tooltip}}">
+					<div class="bar" style="width:{{quota.user_limit_percentage}}%;"></div>
+				</div>
+				<span class="pull-left">IP quota: </span>
+				<div class="progress" title="{{quota.ip_limit_tooltip}}">
+					<div class="bar" style="width:{{quota.ip_limit_percentage}}%;"></div>
+				</div>
+			</div>
+			{% endif %}
+		</div><!-- END sidebar -->
 
-      <!-- Main hero unit for a primary marketing message or call to action -->
-      <div class="hero-unit">
-        <p>
-         I have crawled {{user.get_profile.history_set.all|length}} statuses for you.	
-		</p>
-		<p>
-			Token expires on {{user.get_profile.expiry_time}}
-		</p>
-		<p>
-			Last crawled at {{user.get_profile.last_crawled}}
-		</p>
-      </div>
+		<div class="span8">
+			<!-- main area -->
+			<div class="row">
+				{% for href, text in links %}
+				{% if forloop.counter == page %}
+				<b><a href="{{ href }}">{{ text }}</a></b>
+				{% else %}
+				<a href="{{ href }}">{{ text }}</a>
+				{% endif %}
+				{% endfor %}
+			</div>
 
-      <div class="row">
-      	{% for href, text in links %}
-      		{% if forloop.counter == page %}
-      			<b>
-      		{% endif %}
-      		<a href="{{ href }}">{{ text }}</a>
-      		{% if forloop.counter == page %}
-      			</b>
-      		{% endif %}
-      	{% endfor %}
-      </div>
+			<div class="row">
+				<table class="table table-striped">
+					{% for status in statuses  %}
+					<tr>
+						<td>{{ status }}</td>
+					</tr>
+					{% endfor %}
+				</table>
+			</div>
 
-      <!-- Example row of columns -->
-      <div class="row">
-        <div class="span6 offset3">
-			<table class="table table-striped">
-				{% for status in statuses  %}
-			 	<tr><td>{{ status }}</td></tr>
-			 	{% endfor %}
-			</table>
-        </div>
-      </div>
-      
-      <hr>
+		</div><!-- main area -->
 
-      <footer>
-        <p>&copy; rx201</p>
-      </footer>
-
-    </div> <!-- /container -->
+	</div><!-- END row -->
+	<hr>
+	<footer>
+		<p>&copy; rx201</p>
+	</footer>
+</div><!-- /container -->
     
     
     <script src="{% static "js/jquery-1.9.1.min.js" %}"></script>

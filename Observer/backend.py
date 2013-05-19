@@ -11,7 +11,7 @@ from models import WeiboAccount, History
 #TODO: limit to internal cron scheduler
 def crawl(request):
     result = []
-    crawl_cutoff = now() - timedelta(minutes = 6)
+    crawl_cutoff = now() - timedelta(minutes = 4)
     for account in WeiboAccount.objects.filter(
                 Q(expiry_time__gt=now()), 
                 Q(last_crawled__lt=crawl_cutoff) | Q(latest_status__isnull=True)):

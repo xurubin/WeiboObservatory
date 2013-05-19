@@ -42,8 +42,9 @@ def syncdb(request):
 def home(request):
     profile = request.user.get_profile()
     history = profile.history_set
-    PAGE_ITEMS = 5 
+    PAGE_ITEMS = 20 
     
+    ## Page navigation logic
     latest = int(request.GET.get('latest', 0))
     page = int(request.GET.get('page', 1))
     if latest:
@@ -62,44 +63,27 @@ def home(request):
         links.append(('/?latest=%d&page=%d' % (latest, i+1),
                       str(i+1)))
     
+    ## Quota information
+    if request.user.is_superuser:
+        limits = request.user.client.account.rate_limit_status.get()
+        quota = {'user_limit_percentage' : 100 * limits.remaining_user_hits / limits.user_limit,
+                 'user_limit_tooltip' : '%d of %d remaining' % (limits.remaining_user_hits, limits.user_limit),
+                 'ip_limit_percentage' : 100 * limits.remaining_ip_hits / limits.ip_limit,
+                 'ip_limit_tooltip' : '%d of %d remaining' % (limits.remaining_ip_hits , limits.ip_limit),
+                 }
+    else:
+        quota = {}
+        
+    ## User profile
+    info = request.user.client.users.show.get(uid = profile.weibo_id)
+    nickname = info.screen_name
+    avatar = info.profile_image_url
     statuses = [h.status.content_text() for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]]
     return render(request, 'home.html', {
-                         'uid': str(request.user.client.account.get_uid.get().uid),
+                         'nickname': nickname,
+                         'avatar' : avatar, 
                          'statuses' : statuses,
                          'links' : links,
                          'page' : page,
+                         'quota' : quota
     })
-
-@weibo_loggedin
-def history(request):
-    try:
-        min_id = int(request.GET.get('min', None))
-        max_id = int(request.GET.get('max', None))
-    except ValueError:
-        return HttpResponseBadRequest()
-        
-    if (not min_id) or (not max_id) or (min_id > max_id):
-        return HttpResponseBadRequest()
-
-    result = History.objects.filter(user=request.user.get_profile(), 
-                           status_id__gte=min_id,
-                           status_id__lte=max_id)
-    result_ids = map(lambda x : x.status.id, result )
-    return HttpResponse(json.dumps(result_ids), mimetype="application/json")
-
-
-@weibo_loggedin
-def retrieve(request):
-    try:
-        status_id = int(request.GET.get('id', None))
-    except ValueError:
-        return HttpResponseBadRequest()
-    if not status_id:
-        return HttpResponseBadRequest()
-
-    ## Permission check
-    if not History.objects.filter(user=request.user.get_profile(), status_id__exact=status_id).exists():
-        return HttpResponseBadRequest()
-    
-    return HttpResponse(json.dumps(load_status(status_id)), mimetype="application/json")
-
