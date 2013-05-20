@@ -81,12 +81,27 @@ def home(request):
     
     ## Status list
     statuses = []
+    def to_template(s):
+        images = []
+        for image in s.pic_urls:
+            thumb = image['thumbnail_pic']
+            middle = image.get('bmiddle_pic', thumb.replace( 'thumbnail', 'bmiddle'))
+            large = image.get('original_pic', thumb.replace( 'thumbnail', 'large'))
+            images.append({'t' :thumb, 'm' : middle, 'l' : large})
+        return { 'user' : s.user.screen_name,
+                 'avatar' : s.user.profile_image_url,
+                 'text' : s.text,
+                 'images' : images
+                }
     for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
         status = load_status(h.status_id)
-        statuses.append({ 'user' : status['user']['screen_name'],
-                          'avatar' : status['user']['profile_image_url'],
-                          'text' : status.get('text', '(Empty)'),
-                        })
+        try:
+            template_data = { 'base_status' : to_template(status.retweeted_status),
+                              'outer_status': to_template(status) }
+        except AttributeError:
+            template_data = { 'base_status' : to_template(status), }
+            
+        statuses.append(template_data)
         
     return render(request, 'home.html', {
                          'nickname': nickname,

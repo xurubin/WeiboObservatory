@@ -1,0 +1,32 @@
+{% if status.outer_status %}
+<div class="media">
+	<div class="pull-left">
+		<img src="{{status.outer_status.avatar}}" width="40px" height="40px"/>
+	</div>
+	<div class="media-body">
+		<h4 class="media-heading">{{status.outer_status.user}}</h4>  
+		{{ status.outer_status.text }}
+		<div class="well well-small" >
+{% endif %}
+
+		<div class="media">
+			<div class="pull-left">
+				<img src="{{status.base_status.avatar}}" width="40px" height="40px"/>
+			</div>
+			<div class="media-body">
+				<h4 class="media-heading">{{status.base_status.user}}</h4>  
+				{{ status.base_status.text }}
+				<!-- Only base_status can have other medias like images -->
+				<div>
+				{% for image in status.base_status.images %}
+				<img class='media-image' src="{{image.t}}" thumbnail="{{image.t}}" middle="{{image.m}}"/>
+				{% endfor %}
+				</div>
+			</div>
+		</div>
+
+{% if status.outer_status %}
+		</div>
+	</div>
+</div>
+{% endif %}

@@ -1,4 +1,5 @@
 from models import Status, WeiboUser
+from weibo import JsonDict
 import json
 
 def store_status(status_dict):
@@ -38,8 +39,8 @@ def load_status(status_id):
     """
     status = load_single_status(status_id)
     try: ## Try to load retweet
-        status['retweeted_status'] = load_single_status(status['retweeted_status'])
-    except KeyError:
+        status.retweeted_status = load_single_status(status.retweeted_status)
+    except AttributeError:
         pass
     return status
 
@@ -48,8 +49,8 @@ def load_single_status(status_id):
     database -> json status dict
     """
     status_obj = Status.objects.get(id=status_id)
-    status = json.loads(status_obj.content)
-    status['user'] = load_user(status['user'])
+    status = JsonDict(json.loads(status_obj.content))
+    status.user = load_user(status.user)
     return status
     
 def store_user(user_dict):
@@ -75,4 +76,4 @@ def store_user(user_dict):
     return user
 
 def load_user(user_id):
-    return json.loads(WeiboUser.objects.get(id=user_id).details)
+    return JsonDict(json.loads(WeiboUser.objects.get(id=user_id).details))
