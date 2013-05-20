@@ -21,7 +21,7 @@ def crawl(request):
         
     return HttpResponse('\n'.join(result), mimetype='text/plain')
 
-##@transaction.commit_on_success
+@transaction.commit_on_success
 def crawl_user(account):
     client = weibo.APIClient(app_key=settings.WEIBO_APPKEY, app_secret=settings.WEIBO_APPSECRET)
     client.set_access_token(account.access_token, 0)
