@@ -26,6 +26,7 @@ bae_files:
 	rm $(STAGING_DIR)/SVN_URL
 bae_commit:
 	cd $(STAGING_DIR) && svn add --force .
+	cd $(STAGING_DIR) && svn status | sed -e '/^!/!d' -e 's/^!//' | xargs -r svn rm
 	cd $(STAGING_DIR) && svn commit -m "Automatic deployment."
 	
 bae: clean bae_files
