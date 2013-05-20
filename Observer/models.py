@@ -10,8 +10,13 @@ class Status(models.Model):
     id = models.BigIntegerField(primary_key=True)
     content = models.TextField()
     
+    def _get_content(self):
+        if not hasattr(self, 'content_dict'):
+            self.content_dict = json.loads(self.content)
+        return self.content_dict
+    
     def content_text(self):
-        return json.loads(self.content).get('text', '(Empty)')
+        return self._get_content().get('text', '(Empty)')
     
     def content_summary(self):
         return self.content_text()[:32]

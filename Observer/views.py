@@ -78,7 +78,16 @@ def home(request):
     info = request.user.client.users.show.get(uid = profile.weibo_id)
     nickname = info.screen_name
     avatar = info.profile_image_url
-    statuses = [h.status.content_text() for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]]
+    
+    ## Status list
+    statuses = []
+    for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
+        status = load_status(h.status_id)
+        statuses.append({ 'user' : status['user']['screen_name'],
+                          'avatar' : status['user']['profile_image_url'],
+                          'text' : status.get('text', '(Empty)'),
+                        })
+        
     return render(request, 'home.html', {
                          'nickname': nickname,
                          'avatar' : avatar, 
