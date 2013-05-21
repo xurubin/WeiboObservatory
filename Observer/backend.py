@@ -8,7 +8,8 @@ from django.db.models import Q
 from persistence import store_status
 from models import WeiboAccount, History
 
-#TODO: limit to internal cron scheduler
+##TODO: limit to internal cron scheduler
+##TODO: partition space for concurrent crawling
 def crawl(request):
     result = []
     crawl_cutoff = now() - timedelta(minutes = 4)
@@ -31,15 +32,26 @@ def crawl_user(account):
     else:
         COUNT = 100
     ##TODO: handle exception
-    if account.latest_status:
-        statuses = client.statuses.home_timeline.get(since_id = account.latest_status.id, count = COUNT).statuses
+    if not account.latest_status:
+        all_statuses = client.statuses.home_timeline.get(count = COUNT).statuses
     else:
-        statuses = client.statuses.home_timeline.get(count = COUNT).statuses
+        statuses = client.statuses.home_timeline.get(since_id = account.latest_status.id, count = COUNT).statuses
+        all_statuses = statuses
+        
+        id_func = lambda s:s.id 
+        while len(statuses) == COUNT:
+            last_minid = min(map(id_func, statuses))
+            ## The API will return the largest COUNT statuses whose id is larger than since_id
+            ## so here is how we iterate to retrieve the entire set
+            statuses = client.statuses.home_timeline.get(max_id = last_minid - 1, since_id = account.latest_status.id, count = COUNT).statuses
+            all_statuses.extend(statuses)
+            
+    all_statuses.sort(key=id_func)
+    ids = map(id_func, all_statuses)
+    assert len(ids) == len(set(ids)) ## Sanity check: no duplicates in the list
     
     result = []
-    statuses.sort(key=lambda s:s.id)
-    
-    saved_statuses = map(store_status, statuses)
+    saved_statuses = map(store_status, all_statuses)
     for status, retweet in saved_statuses:
         h = History()
         h.user = account
@@ -52,3 +64,8 @@ def crawl_user(account):
     account.save()
     return result
     
+def revisit(request):
+    for account in WeiboAccount.objects.filter(
+                Q(expiry_time__gt=now()), 
+                Q(latest_status__isnull=False)):
+        pass
