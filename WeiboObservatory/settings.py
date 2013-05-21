@@ -2,6 +2,7 @@
 
 from platform import *
 import os
+import re
 PROJECT_DIR=os.path.abspath(os.path.dirname(__file__))
 
 ## Move to platform-specific settings.
@@ -9,7 +10,7 @@ PROJECT_DIR=os.path.abspath(os.path.dirname(__file__))
 #TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+     ('Rubin Xu', 'xurubin@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -148,7 +149,8 @@ LOGGING = {
         'mail_admins': {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
         }
     },
     'loggers': {
@@ -164,3 +166,9 @@ AUTH_PROFILE_MODULE = 'Observer.WeiboAccount'
 LOGIN_URL  = '/login'
 LOGOUT_URL = '/logout'
 ##AUTHENTICATION_BACKENDS = ('WeiboObservatory.authorize.backend', )
+
+IGNORABLE_404_URLS = (
+    re.compile(r'^/apple-touch-icon.*\.png$'),
+    re.compile(r'^/favicon\.ico$'),
+    re.compile(r'^/robots\.txt$'),
+)
