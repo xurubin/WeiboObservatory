@@ -1,8 +1,8 @@
 from django.http import HttpResponse
 from django.shortcuts import render
 from authorize import weibo_loggedin
-from persistence import load_status
 from base62 import base62_encode
+from models import Status
 
 def call_command(name, *args, **options):
     """
@@ -37,36 +37,39 @@ def syncdb(request):
 
     return HttpResponse("syncdb\n" + result, mimetype='text/plain')
 
-def to_mid(id):
+def to_mid(sid):
     result = []
-    while id:
-        result.insert(0, base62_encode(id % 10000000))
-        id /= 10000000
+    while sid:
+        result.insert(0, base62_encode(sid % 10000000))
+        sid /= 10000000
     return "".join(result)
 
 @weibo_loggedin
 def home(request):
     profile = request.user.get_profile()
-    history = profile.history_set
+    all_statuses = profile.statuses
     PAGE_ITEMS = 20 
     
     ## Page navigation logic
-    latest = int(request.GET.get('latest', 0))
+    latest_id = int(request.GET.get('latest', 0))
     page = int(request.GET.get('page', 1))
-    if latest:
-        new_count = history.filter(status_id__gt=latest).count()
+    if latest_id:
+        new_count = all_statuses.filter(id__gt=latest_id).count()
     else:
-        latest = history.order_by('-status__id')[0].status.id
+        try:
+            latest_id = all_statuses.latest('id').id
+        except Status.DoesNotExist:
+            latest_id = 0
         new_count = 0
     
-    known_statuses = history.filter(status_id__lte=latest).order_by('-status__id')
+    known_statuses = all_statuses.filter(id__lte=latest_id).order_by('-id')
     page_count = (known_statuses.count() + PAGE_ITEMS - 1) / PAGE_ITEMS
     
     links = [('/', 
               'Latest' + (' (%d)' % new_count if new_count else ''))]
     
     for i in xrange(1, page_count):
-        links.append(('/?latest=%d&page=%d' % (latest, i+1),
+        links.append(('/?latest=%d&page=%d' % (latest_id, i+1),
                       str(i+1)))
     
     ## Quota information
@@ -94,19 +97,16 @@ def home(request):
             middle = image.get('bmiddle_pic', thumb.replace( 'thumbnail', 'bmiddle'))
             large = image.get('original_pic', thumb.replace( 'thumbnail', 'large'))
             images.append({'t' :thumb, 'm' : middle, 'l' : large})
-        return { 'user' : s.user.screen_name,
+        return { 'user'   : s.user.name,
                  'avatar' : s.user.profile_image_url,
-                 'text' : s.text,
+                 'text'   : s.text,
                  'images' : images,
-                 'link' : "http://www.weibo.com/%d/%s" % (s.user.id, to_mid(s.id)),
+                 'link'   : "http://www.weibo.com/%d/%s" % (s.user.id, to_mid(s.id)),
                 }
-    for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
-        status = load_status(h.status_id)
-        template_data = [to_template(status) ]
-        try:
-            template_data.append(to_template(status.retweeted_status))
-        except AttributeError:
-            pass
+    for status in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
+        template_data = [to_template(status.get_content())]
+        if status.retweet:
+            template_data.append(to_template(status.retweet.get_content()))
             
         statuses.append(template_data)
         

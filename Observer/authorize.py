@@ -3,7 +3,6 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test, REDIRECT_FIELD_NAME
 from django.http import HttpResponse, HttpResponseRedirect
-from django.db import transaction
 from django.utils.timezone import now
 from models import WeiboAccount
 import weibo

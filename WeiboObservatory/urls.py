@@ -17,8 +17,8 @@ urlpatterns = patterns('',
     url(r'^' + settings.LOGOUT_URL[1:] + '$', 'Observer.authorize.user_logout'),
     url(r'^renew$', 'Observer.authorize.user_renew'),
     
-    url(r'^crawl$', 'Observer.backend.crawl'),
-    url(r'^revisit', 'Observer.backend.revisit'),
+    url(r'^crawl$', 'Observer.crawl.crawl'),
+    url(r'^revisit', 'Observer.revisit.revisit'),
     url(r'^console/$', 'Observer.console.main'),
 
     url(r'^admin/', include(admin.site.urls)),
