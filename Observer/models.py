@@ -13,7 +13,7 @@ class Status(models.Model):
         
     id = models.BigIntegerField(primary_key=True)
     content = models.TextField()
-    retweet = models.ForeignKey('self', null=True)
+    retweet = models.ForeignKey('self', blank=True, null=True)
     deleted = models.BooleanField(default=False)
     content_hash = models.BigIntegerField(default=0)
     
@@ -31,7 +31,7 @@ class Status(models.Model):
         return self.content_dict
     
     def _hash_content(self, text):
-        return struct.unpack('<Q', hashlib.md5(text).digest()[:8])[0]
+        return struct.unpack('<Q', hashlib.md5(text.encode('utf-8')).digest()[:8])[0]
     
     def cmp_content(self, text):
         if not self.content_hash:

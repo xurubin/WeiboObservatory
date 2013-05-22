@@ -13,12 +13,10 @@ def store_status(status_dict):
     returns Status
     """
     retweet = None
-    try: ## Try to store retweets
+    if hasattr(status_dict, 'retweeted_status'):
         retweet = store_single_status(status_dict.retweeted_status, None)
-        del status_dict.retweeted_status
-    except AttributeError:
-        pass
-    print retweet
+        status_dict.pop('retweeted_status')
+        
     return store_single_status(status_dict, retweet)
 
 def store_single_status(status_dict, rewteet):

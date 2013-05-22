@@ -20,7 +20,7 @@ def revisit(request):
         ## This will help exploring the status space roughly in accordance 
         ## to time progression.
         if not accounts: break
-        acc = max(accounts.iteritems(), lambda x:x[1])
+        acc = max(accounts.iteritems(), key=lambda x:x[1])
         account = acc[0]
         latest_sid = acc[1]
         new_latest_sid = revisit_user(account, latest_sid, logs)
@@ -39,36 +39,50 @@ def revisit_user(weibo_account, max_status_id, logs):
     COUNT = settings.WEIBO_API_MAX_COUNT
     
     visible_statuses = sorted(client.statuses.home_timeline.get(
-                                    since_id = max_status_id, count = COUNT, trim_user = 1).statuses,
+                                    max_id = max_status_id, count = COUNT, trim_user = 1).statuses,
                               key = lambda x: x.id)
-    visible_statuses.sort()
-    visible_min_sid = min(visible_statuses, lambda x:x.id)
-    visible_max_sid = max(visible_statuses, lambda x:x.id)
     
+    if not visible_statuses:
+        return None
+    
+    visible_min_sid = min(visible_statuses, key=lambda x:x.id).id
+    visible_max_sid = max(visible_statuses, key=lambda x:x.id).id
+    
+    ## Have we reached the end of local stored history?
+    last_run = not weibo_account.statuses.filter(id__lt=visible_min_sid).exists()
+
     stored_statuses = list(weibo_account.statuses.filter(
                        id__gte=visible_min_sid, id__lte=visible_max_sid).order_by('id'))
     
+    
     ## Compare backwards i.e. from larger id to smaller id
     while visible_statuses or stored_statuses:
-        if stored_statuses or (visible_statuses[-1].id > stored_statuses[-1].id):
+        if (not stored_statuses) or (visible_statuses[-1].id > stored_statuses[-1].id):
             not_crawled = visible_statuses.pop() ## JsonDict
-            logs.append("Missing %d in crawled history." % not_crawled.id)
-        elif visible_statuses or stored_statuses[-1].id > visible_statuses[-1].id:
+            if not last_run:
+                logs.append("Status %d missing in crawled history." % not_crawled.id)
+            else:
+                not_crawled = None
+                
+        elif (not visible_statuses) or stored_statuses[-1].id > visible_statuses[-1].id:
             fully_deleted = stored_statuses.pop() ## Status
             logs.append("Status %d completed deleted." % fully_deleted.id)
+            
         else:
             s0 = visible_statuses.pop()
             s1 = stored_statuses.pop()
             content_deleted = None
             if not s1.cmp_content(s0.text):
                 content_deleted = s1 ## Status
-            elif s1.retweet and (not s1.retweet.cmp_content(s0.retweeted_status.text)):
-                content_deleted = s1.retweet ## Status
-            if content_deleted:
                 logs.append("Status %d content hidden." % content_deleted.id)
-            
+            elif s1.retweet and (not s1.retweet.cmp_content(s0.retweeted_status.text)):
+                content_deleted = s1.retweet ## Status/retweeted
+                logs.append("Status %d(%d) retweet hidden." % (s1.id, content_deleted.id))
+                
+            if (not content_deleted) and settings.DEBUG:
+                logs.append("Status %d unchanged." % s1.id)
     
-    if weibo_account.statuses.filter(id_lt=visible_min_sid).exists():
-        return visible_min_sid - 1
-    else:
+    if last_run:
         return None ## We have reached the end of local history, no need to revisit next time
+    else:
+        return visible_min_sid - 1
