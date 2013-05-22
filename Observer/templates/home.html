@@ -79,7 +79,7 @@
 					{% for status in statuses  %}
 					<tr>
 						<td>
-						{% include "status.html" with status=status %}
+						{% include "status.html" with statuses=status toplevel=1 only %}
 						</td>
 					</tr>
 					{% endfor %}

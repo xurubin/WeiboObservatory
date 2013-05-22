@@ -1,9 +1,8 @@
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponse
 from django.shortcuts import render
 from authorize import weibo_loggedin
-from models import History
 from persistence import load_status
-import json
+from base62 import base62_encode
 
 def call_command(name, *args, **options):
     """
@@ -37,6 +36,13 @@ def syncdb(request):
     result = call_command('syncdb', load_initial_data=False, interactive=False)
 
     return HttpResponse("syncdb\n" + result, mimetype='text/plain')
+
+def to_mid(id):
+    result = []
+    while id:
+        result.insert(0, base62_encode(id % 10000000))
+        id /= 10000000
+    return "".join(result)
 
 @weibo_loggedin
 def home(request):
@@ -91,15 +97,16 @@ def home(request):
         return { 'user' : s.user.screen_name,
                  'avatar' : s.user.profile_image_url,
                  'text' : s.text,
-                 'images' : images
+                 'images' : images,
+                 'link' : "http://www.weibo.com/%d/%s" % (s.user.id, to_mid(s.id)),
                 }
     for h in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
         status = load_status(h.status_id)
+        template_data = [to_template(status) ]
         try:
-            template_data = { 'base_status' : to_template(status.retweeted_status),
-                              'outer_status': to_template(status) }
+            template_data.append(to_template(status.retweeted_status))
         except AttributeError:
-            template_data = { 'base_status' : to_template(status), }
+            pass
             
         statuses.append(template_data)
         
