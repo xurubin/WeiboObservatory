@@ -14,7 +14,7 @@ bae_checkout:
 bae_files:
 	@echo Collecting project files...
 	@mkdir -p $(STAGING_DIR)/static >/dev/null
-	@python manage.py collectstatic -c --noinput
+	@python manage.py collectstatic -c --noinput >/dev/null
 	@rsync -av \
 		--exclude='.*' \
 		--exclude='static' \
@@ -25,7 +25,7 @@ bae_files:
 		--exclude='*.pyc' \
 		--exclude='*.bak' \
 		--exclude='*.example.py' \
-		./ $(STAGING_DIR)/
+		./ $(STAGING_DIR)/ >/dev/null
 	@cp -r $(TARGET_DIR)/$(call GET_TARGET,$@)/* $(STAGING_DIR)/
 	@rm $(STAGING_DIR)/manage.py
 	@rm $(STAGING_DIR)/SVN_URL
