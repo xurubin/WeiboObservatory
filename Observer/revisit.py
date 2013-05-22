@@ -51,7 +51,7 @@ def revisit_user(weibo_account, max_status_id, logs):
     ## Have we reached the end of local stored history?
     last_run = not weibo_account.statuses.filter(id__lt=visible_min_sid).exists()
 
-    stored_statuses = list(weibo_account.statuses.filter(
+    stored_statuses = list(weibo_account.statuses.defer('content').filter(
                        id__gte=visible_min_sid, id__lte=visible_max_sid).order_by('id'))
     
     
@@ -79,7 +79,7 @@ def revisit_user(weibo_account, max_status_id, logs):
                 content_deleted = s1.retweet ## Status/retweeted
                 logs.append("Status %d(%d) retweet hidden." % (s1.id, content_deleted.id))
                 
-            if (not content_deleted) and settings.DEBUG:
+            if not content_deleted:
                 logs.append("Status %d unchanged." % s1.id)
     
     if last_run:

@@ -13,13 +13,16 @@ import urlparse
 WEIBO_REDIRECT_FIELD = 'state'
 
 def weibo_login_check(user):
+    user.client = None
     if not user.is_authenticated():
-        user.client = None
         return False
     client = weibo.APIClient(app_key=settings.WEIBO_APPKEY, app_secret=settings.WEIBO_APPSECRET)
-    client.set_access_token(user.get_profile().access_token, 0)
-    user.client = client
-    return True
+    try:
+        client.set_access_token(user.get_profile().access_token, 0)
+        user.client = client
+        return True
+    except WeiboAccount.DoesNotExist:
+        return False
     
 def weibo_loggedin(function=None, redirect_field_name=REDIRECT_FIELD_NAME, login_url=None):
     actual_decorator = user_passes_test(
