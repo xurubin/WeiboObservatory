@@ -28,6 +28,7 @@ MANAGERS = ADMINS
 #}
 
 WEIBO_ADMINS = [1420854073, ]
+WEIBO_API_MAX_COUNT = 100
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
