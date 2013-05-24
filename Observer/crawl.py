@@ -100,7 +100,7 @@ def crawl_user(account):
             h.save()
     ## Move on if we already have a few old statuses, or if they are quite old
     ## This is to deal with API sometimes having missing statuses in between (not even eventually consistent?!) 
-    if saved_statuses and (len(saved_statuses) >= 5 or older_than(saved_statuses[-1].created_at, 15)): 
+    if saved_statuses and (len(saved_statuses) >= 5 or older_than(all_statuses[-1].created_at, 15)): 
         account.latest_status = saved_statuses[-1]
     account.save()
     return map(lambda s:s.id, saved_statuses)

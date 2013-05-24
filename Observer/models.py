@@ -7,13 +7,25 @@ import hashlib
 import struct
 
 class Status(models.Model):
+    NOT_DELETED     = 0
+    CONTENT_HIDDEN  = 1
+    DELETED_FULL    = 2
+    RETWEET_HIDDEN  = 3
+    RETWEET_DELETED = 4
+    
     class Meta:
         verbose_name_plural = 'Statuses'
         
     id = models.BigIntegerField(primary_key=True)
     content = models.TextField()
     retweet = models.ForeignKey('self', blank=True, null=True)
-    deleted = models.BooleanField(default=False)
+    deleted = models.SmallIntegerField(default=NOT_DELETED, choices = (
+                                           (NOT_DELETED, 'Not deleted'),
+                                           (CONTENT_HIDDEN, 'Content hidden'),
+                                           (DELETED_FULL, 'Fully deleted'),
+                                           (RETWEET_HIDDEN, 'Rewteet hidden'),
+                                           (RETWEET_DELETED, 'Retweet deleted')))
+    deleted_at = models.DateTimeField(blank=True, null=True)
     content_hash = models.BigIntegerField(default=0)
     
     def set_content(self, data_dict):
@@ -26,7 +38,11 @@ class Status(models.Model):
     def get_content(self):
         if not hasattr(self, 'content_dict'):
             self.content_dict = JsonDict(json.loads(self.content)) # Decompression here
-            self.content_dict.user = JsonDict(self.content_dict.user)
+            if self.content_dict.get('deleted', False): # Deleted status only has limited fields (deleted, text, created_at(null), id)
+                self.content_dict.user = None
+            else:
+                self.content_dict.user = JsonDict(self.content_dict.user)
+                
         return self.content_dict
     
     def _hash_content(self, text):
@@ -51,7 +67,7 @@ class Status(models.Model):
     content_summary.short_description = 'Content'
 
     def not_deleted(self):
-        return not self.deleted
+        return self.deleted == Status.NOT_DELETED
     not_deleted.short_description = 'Existence'
     not_deleted.boolean = True
     

@@ -3,6 +3,7 @@ from django.shortcuts import render
 from authorize import weibo_loggedin
 from base62 import base62_encode
 from models import Status
+from django.db.models import Q
 
 def call_command(name, *args, **options):
     """
@@ -53,6 +54,13 @@ def home(request):
     ## Page navigation logic
     latest_id = int(request.GET.get('latest', 0))
     page = int(request.GET.get('page', 1))
+    if 'deleted' in request.GET:
+        all_statuses = all_statuses.filter(
+                           Q(deleted = Status.CONTENT_HIDDEN) | 
+                           Q(deleted = Status.DELETED_FULL) | 
+                           Q(deleted = Status.RETWEET_HIDDEN) | 
+                           Q(deleted = Status.RETWEET_DELETED))
+        
     if latest_id:
         new_count = all_statuses.filter(id__gt=latest_id).count()
     else:
@@ -91,6 +99,13 @@ def home(request):
     ## Status list
     statuses = []
     def to_template(s):
+        if s.get('deleted', False):
+            return { 'user'   : '',
+                 'avatar' : '',
+                 'text'   : s.text,
+                 'images' : [],
+                 'link'   : "#",
+                } 
         images = []
         for image in s.pic_urls:
             thumb = image['thumbnail_pic']
