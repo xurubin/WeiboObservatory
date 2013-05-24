@@ -105,6 +105,7 @@ def home(request):
                  'text'   : s.text,
                  'images' : [],
                  'link'   : "#",
+                 'time'   : '',
                 } 
         images = []
         for image in s.pic_urls:
@@ -117,6 +118,7 @@ def home(request):
                  'text'   : s.text,
                  'images' : images,
                  'link'   : "http://www.weibo.com/%d/%s" % (s.user.id, to_mid(s.id)),
+                 'time'   : s.created_at,
                 }
     for status in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
         template_data = [to_template(status.get_content())]
