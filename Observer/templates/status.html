@@ -1,5 +1,8 @@
 {% with status=statuses|first %}
-<div class="media{{toplevel|yesno:", well well-small"}}">
+<div class="media {{toplevel|yesno:",well well-small"}}">
+{%if status.deleted %}
+<div class='deleted_status'>
+{% endif %}
     {% if toplevel %} <!-- Only display avatar in the outer status. -->
 	<div class="pull-left">
 		<img src="{{status.avatar}}" width="40px" height="40px"/>
@@ -25,5 +28,8 @@
 		    {{status.time}}
 		</div>
 	</div>
+{%if status.deleted %}
+</div>
+{% endif %}	
 </div>
 {% endwith %}

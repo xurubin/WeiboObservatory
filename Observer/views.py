@@ -98,7 +98,8 @@ def home(request):
     
     ## Status list
     statuses = []
-    def to_template(s):
+    def to_template(status):
+        s = status.get_content()
         if s.get('deleted', False):
             return { 'user'   : '',
                  'avatar' : '',
@@ -119,11 +120,12 @@ def home(request):
                  'images' : images,
                  'link'   : "http://www.weibo.com/%d/%s" % (s.user.id, to_mid(s.id)),
                  'time'   : s.created_at,
+                 'deleted': status.deleted != Status.NOT_DELETED,
                 }
     for status in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
-        template_data = [to_template(status.get_content())]
+        template_data = [to_template(status)]
         if status.retweet:
-            template_data.append(to_template(status.retweet.get_content()))
+            template_data.append(to_template(status.retweet))
             
         statuses.append(template_data)
         
