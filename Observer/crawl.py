@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from django.db import transaction
 import weibo
 from django.utils.timezone import now
-from datetime import timedelta
+from datetime import timedelta, datetime
 from django.db.models import Q
 from models import WeiboAccount, History, Status
 
@@ -49,6 +49,18 @@ def crawl(request):
         
     return HttpResponse('\n'.join(result), mimetype='text/plain')
 
+def older_than(time_str, delta_minutes):
+    "Sat May 25 02:00:42 +0800 2013"
+    _, month, day, time, tz, year = time_str.split(' ')
+    local_time = datetime.strptime(' '.join([month, day, time, year]), '%b %d %H:%M:%S %Y')
+    tz_diff = timedelta(hours = int(tz[1:3]), minutes = int(tz[3:5]))
+    if tz[0] == '+':
+        utc_time = local_time - tz_diff
+    else:
+        utc_time = local_time + tz_diff
+        
+    return utc_time <= datetime.utcnow() - timedelta(minutes = delta_minutes)
+    
 @transaction.commit_on_success
 def crawl_user(account):
     client = weibo.APIClient(app_key=settings.WEIBO_APPKEY, app_secret=settings.WEIBO_APPSECRET)
@@ -80,11 +92,15 @@ def crawl_user(account):
     
     saved_statuses = map(store_status, all_statuses)
     for status in saved_statuses:
-        h = History()
-        h.user = account
-        h.status = status
-        h.save()
-    if saved_statuses:
+        ## If we encounter duplicated status, do not create history m2m again
+        if not status.weiboaccount_set.exists():
+            h = History()
+            h.user = account
+            h.status = status
+            h.save()
+    ## Move on if we already have a few old statuses, or if they are quite old
+    ## This is to deal with API sometimes having missing statuses in between (not even eventually consistent?!) 
+    if saved_statuses and (len(saved_statuses) >= 5 or older_than(saved_statuses[-1].created_at, 15)): 
         account.latest_status = saved_statuses[-1]
     account.save()
     return map(lambda s:s.id, saved_statuses)
