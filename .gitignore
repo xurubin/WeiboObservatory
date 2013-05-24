@@ -1,3 +1,4 @@
 platform.py
 staging/
 sqlite.db
+*.pyc

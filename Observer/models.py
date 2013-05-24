@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib import admin
 import json
 from django.core import urlresolvers
 from weibo import JsonDict
@@ -112,19 +111,4 @@ class History(models.Model):
     
 
 
-class StatusAdmin(admin.ModelAdmin):
-    list_display = ('id', 'not_deleted', 'user_name', 'content_summary', 'RetweetId')
-
-    
-class WeiboAccountAdmin(admin.ModelAdmin):
-    list_display = ('weibo_id', 'expiry_time', 'last_crawled')
-
-    
-class HistoryAdmin(admin.ModelAdmin):
-    list_display = ('WeiboId', 'StatusId', 'StatusContent')
-
-    
-admin.site.register(Status, StatusAdmin)
-admin.site.register(WeiboAccount, WeiboAccountAdmin)
-admin.site.register(History, HistoryAdmin)
 
