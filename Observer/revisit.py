@@ -103,4 +103,5 @@ def revisit_user(weibo_account, max_status_id, logs):
         logs.append("EOF")
         return None ## We have reached the end of local history, no need to revisit next time
     else:
+        logs.append("--------")
         return visible_min_sid - 1
