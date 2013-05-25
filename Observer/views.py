@@ -92,9 +92,8 @@ def home(request):
         quota = {}
         
     ## User profile
-    info = request.user.client.users.show.get(uid = profile.weibo_id)
-    nickname = info.screen_name
-    avatar = info.profile_image_url
+    nickname = profile.weibo_name
+    avatar = profile.weibo_avatar
     
     ## Status list
     statuses = []

@@ -93,6 +93,8 @@ class Status(models.Model):
 class WeiboAccount(models.Model):
     user = models.OneToOneField(User)
     weibo_id = models.BigIntegerField()
+    weibo_name = models.CharField(max_length=48)
+    weibo_avatar = models.CharField(max_length=64)
     access_token = models.CharField(max_length=48)
     expiry_time = models.DateTimeField(auto_now_add=False, auto_now=False)
     latest_status = models.ForeignKey(Status, blank=True, null=True, related_name='+')

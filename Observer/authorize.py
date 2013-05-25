@@ -89,7 +89,13 @@ def user_login(request):
             profile = WeiboAccount()
             profile.user = user
             profile.weibo_id = int(uid)
+            
+        client.set_access_token(access_token, 0)
+        info = client.users.show.get(uid = profile.weibo_id)
+
         profile.access_token  = access_token
+        profile.weibo_name = info.screen_name
+        profile.weibo_avatar = info.profile_image_url
         profile.expiry_time = now() + timedelta(seconds = expires_in)
         profile.save()
         ## Login successfully, note the hack of 'backend' here
