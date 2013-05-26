@@ -41,7 +41,10 @@ def syncdb(request):
 def to_mid(sid):
     result = []
     while sid:
-        result.insert(0, base62_encode(sid % 10000000))
+        if sid < 10000000:
+            result.insert(0, base62_encode(sid % 10000000))
+        else:
+            result.insert(0, base62_encode(sid % 10000000, padding=4))
         sid /= 10000000
     return "".join(result)
 

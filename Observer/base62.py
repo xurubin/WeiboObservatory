@@ -2,7 +2,7 @@
 
 ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
-def base62_encode(num, alphabet=ALPHABET):
+def base62_encode(num, padding = 0, alphabet=ALPHABET):
     """Encode a number in Base X
 
     `num`: The number to encode
@@ -12,7 +12,7 @@ def base62_encode(num, alphabet=ALPHABET):
         return alphabet[0]
     arr = []
     base = len(alphabet)
-    while num:
+    while ((not padding) and num) or (padding and len(arr) < padding):
         rem = num % base
         num = num // base
         arr.append(alphabet[rem])
