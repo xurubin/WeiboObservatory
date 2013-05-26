@@ -119,7 +119,7 @@ def home(request):
                  'images' : images,
                  'link'   : "http://www.weibo.com/%d/%s" % (s.user.id, to_mid(s.id)),
                  'time'   : s.created_at,
-                 'deleted': status.deleted != Status.NOT_DELETED,
+                 'deleted': status.deleted == Status.CONTENT_HIDDEN or status.deleted == Status.DELETED_FULL,
                 }
     for status in known_statuses[(page-1)*PAGE_ITEMS : page*PAGE_ITEMS]:
         template_data = [to_template(status)]
