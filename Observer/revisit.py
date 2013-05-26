@@ -34,8 +34,11 @@ def revisit(request):
 
 ## Mark status as deleted and update timestamp, if not marked before
 def mark_deleted(status, type):
-    if status.deleted != Status.NOT_DELETED:
+    if status.deleted ==type:
         return
+    ## Deleted/hidden status is permanent and most serious, we shouldn't escape from it
+    if status.deleted == Status.CONTENT_HIDDEN or status.deleted == Status.DELETED_FULL:
+        return 
     status.deleted = type
     status.deleted_at = datetime.now()
     status.save()
@@ -101,6 +104,7 @@ def revisit_user(weibo_account, max_status_id, logs):
                 if s1.deleted != Status.NOT_DELETED:
                     s1.deleted = Status.NOT_DELETED
                     s1.save()
+                    ##TODO: Undo retweeter as well
     
     if last_run:
         logs.append("EOF")
