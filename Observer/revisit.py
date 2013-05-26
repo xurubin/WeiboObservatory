@@ -98,6 +98,9 @@ def revisit_user(weibo_account, max_status_id, logs):
                     
             else:
                 logs.append("%d(%s) unchanged." % (s1.id, s1.get_content().created_at))
+                if s1.deleted != Status.NOT_DELETED:
+                    s1.deleted = Status.NOT_DELETED
+                    s1.save()
     
     if last_run:
         logs.append("EOF")
