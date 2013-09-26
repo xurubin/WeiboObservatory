@@ -57,7 +57,9 @@ def home(request):
     ## Page navigation logic
     latest_id = int(request.GET.get('latest', 0))
     page = int(request.GET.get('page', 1))
+    deleted = False
     if 'deleted' in request.GET:
+        deleted = True
         all_statuses = all_statuses.filter(
                            Q(deleted = Status.CONTENT_HIDDEN) | 
                            Q(deleted = Status.DELETED_FULL) | 
@@ -76,11 +78,11 @@ def home(request):
     known_statuses = all_statuses.filter(id__lte=latest_id).order_by('-id')
     page_count = (known_statuses.count() + PAGE_ITEMS - 1) / PAGE_ITEMS
     
-    links = [('/', 
+    links = [('/?deleted' if deleted else '/', 
               'Latest' + (' (%d)' % new_count if new_count else ''))]
     
     for i in xrange(1, page_count):
-        links.append(('/?latest=%d&page=%d' % (latest_id, i+1),
+        links.append(('/?latest=%d&page=%d%s' % (latest_id, i+1, '&deleted' if deleted else ''),
                       str(i+1)))
     
     ## Quota information
